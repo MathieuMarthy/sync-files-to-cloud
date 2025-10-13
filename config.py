@@ -7,10 +7,18 @@ from src.models.sync_parameters import SyncParameter
 
 
 class Config:
+    _instance = None
+
     sync_parameters: list[SyncParameter]
 
     log_level: str = "WARN"
     log_file: str = "logs/app.log"
+
+    # Singleton pattern implementation
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(Config, cls).__new__(cls)
+        return cls._instance
 
     def __init__(self):
         self._load_config_yaml()
