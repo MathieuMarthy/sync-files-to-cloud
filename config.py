@@ -1,11 +1,15 @@
-import os
+import os.path
 
 import yaml
 
 from src.exceptions.ConfigException import ConfigException
 from src.models.sync_parameters import SyncParameter
 
+# Define the root directory
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
+# Declare the Config class that loads configuration from a YAML file
 class Config:
     _instance = None
 
