@@ -4,6 +4,7 @@ logging:
 
 sync:
   - name: my_images
+    cloud_provider: "GoogleDrive"
     sync_interval: 3600
     local_path: "C:/Users/Username/Documents/Images"
     remote_path: "/images"
