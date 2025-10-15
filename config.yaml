@@ -1,0 +1,13 @@
+logging:
+  level: "INFO"
+  file_path: "logs/app.log"
+
+sync:
+  - name: my_images
+    cloud_provider: "GoogleDrive"
+    sync_interval: 3600
+    local_path: "C:/Users/Username/Documents/Images"
+    remote_path: "/images"
+    exclude_patterns:
+      - "*.tmp"
+      - "temp_folder/*"
