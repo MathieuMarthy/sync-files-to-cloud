@@ -1,6 +1,6 @@
 import logging
 
-from foldersconfig import ProjectConfig
+from config import ProjectConfig
 
 projectConfig = ProjectConfig()
 

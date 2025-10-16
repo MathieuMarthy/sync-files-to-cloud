@@ -1,6 +1,6 @@
 import os.path
 
-from foldersconfig import ROOT_DIR
+from config import ROOT_DIR
 
 
 def path(relative_path: str) -> str:
