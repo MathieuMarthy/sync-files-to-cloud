@@ -16,7 +16,7 @@ class Config:
     sync_parameters: list[SyncParameter]
 
     log_level: str = "WARN"
-    log_file: str = "logs/app.log"
+    log_file: str = "app.log"
 
     # Singleton pattern implementation
     def __new__(cls):
@@ -56,4 +56,4 @@ class Config:
         if "logging" in config:
             logging_config = config["logging"]
             self.log_level = logging_config.get("level", self.log_level)
-            self.log_file = logging_config.get("file", self.log_file)
+            self.log_file = logging_config.get("file_path", self.log_file)

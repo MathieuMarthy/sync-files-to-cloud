@@ -1,6 +1,6 @@
 logging:
   level: "INFO"
-  file_path: "logs/app.log"
+  file_path: "app.log"
 
 sync:
   - name: my_images
