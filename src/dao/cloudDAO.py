@@ -4,7 +4,7 @@ from abc import ABC
 class CloudDAO(ABC):
 
     def __init__(self):
-        self._connect()
+        self.init_connection()
 
     def upload_files(self):
         pass
@@ -12,9 +12,5 @@ class CloudDAO(ABC):
     def download_files(self):
         pass
 
-    def _connect(self):
-        pass
-
-    @staticmethod
-    def init_connection():
+    def init_connection(self):
         pass
