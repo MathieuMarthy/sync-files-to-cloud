@@ -1,6 +1,11 @@
 import logging
+from time import sleep
 
-from config import ProjectConfig
+import schedule
+
+from config import ProjectConfig, FoldersConfig
+from src.dao.get_clouddao_from_cloud_enum import get_clouddao_from_cloud_enum
+from src.services.SyncService import SyncService
 
 projectConfig = ProjectConfig()
 
@@ -11,4 +16,23 @@ logging.basicConfig(
 )
 
 if __name__ == "__main__":
-    pass
+    FoldersConfig = FoldersConfig()
+
+    # Initialize connections for each folder's cloud provider
+    # to check if credentials are valid
+    for folder in FoldersConfig.folders_parameters:
+        logging.info(f"Processing folder: {folder.name}")
+        dao = get_clouddao_from_cloud_enum(folder.cloud_provider)
+        dao.init_connection()
+
+        # first run
+        SyncService.sync_folder(folder=folder)
+
+        # schedule the sync job
+        schedule.every(folder.sync_interval).minutes.do(
+            SyncService.sync_folder, folder=folder
+        )
+
+    while True:
+        schedule.run_pending()
+        sleep(1)

@@ -22,9 +22,6 @@ class GDriveCloudDAO(CloudDAO):
     _instance = None
     gdrive_service: Resource
 
-    def __init__(self):
-        super().__init__()
-
     def upload_files(self):
         raise NotImplemented()
 
