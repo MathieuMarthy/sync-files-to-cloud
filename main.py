@@ -26,11 +26,12 @@ if __name__ == "__main__":
         dao.init_connection()
 
         # first run
-        SyncService.sync_folder(folder=folder)
+        syncService = SyncService(folder)
+        syncService.sync_folder()
 
         # schedule the sync job
         schedule.every(folder.sync_interval).minutes.do(
-            SyncService.sync_folder, folder=folder
+            syncService.sync_folder, folder=folder
         )
 
     while True:

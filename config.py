@@ -15,6 +15,9 @@ class ProjectConfig:
     log_level: str = "WARN"
     log_file: str = "app.log"
 
+    def __init__(self):
+        self._load_config_yaml()
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(ProjectConfig, cls).__new__(cls)
