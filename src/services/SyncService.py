@@ -19,41 +19,41 @@ class SyncService:
         logging.info(f"Starting sync for folder: {self.folder.name}'")
         files = self._get_files()
         logging.info(f"Found {len(files)} files to sync")
-        print(files)
 
         if self.folder.compress:
             files = [self._compress_files(files)]
 
         # TODO: upload files to cloud provider
 
-    def _get_files(self) -> list[str]:
+    def _get_files(self) -> list[Path]:
         if not os.path.exists(self.folder.local_path):
             logging.error(f"Folder does not exist: '{self.folder.local_path}'")
             return []
 
         folders_files = Path(self.folder.local_path).rglob("*")
+        folders_files = [file for file in folders_files if file.is_file()]
 
-        # Exclude files matching any of the exclude patterns
-        if len(self.folder.exclude_patterns) > 0:
-            filtered_files = []
+        if len(self.folder.exclude_patterns) == 0:
+            return folders_files
 
-            for file in folders_files:
-                # Check if the file matches any exclude pattern
-                relative_path = str(file.relative_to(self.folder.local_path))
-                should_exclude = False
-                for pattern in self.folder.exclude_patterns:
-                    if fnmatch.fnmatch(relative_path, pattern):
-                        should_exclude = True
-                        break
+        # Filter files based on exclude patterns
+        filtered_files: list[Path] = []
 
-                if not should_exclude:
-                    filtered_files.append(file)
+        for file in folders_files:
+            # Check if the file matches any exclude pattern
+            relative_path = str(file.relative_to(self.folder.local_path))
+            should_exclude = False
+            for pattern in self.folder.exclude_patterns:
+                if fnmatch.fnmatch(relative_path, pattern):
+                    should_exclude = True
+                    break
 
-            return filtered_files
+            if not should_exclude:
+                filtered_files.append(file)
 
-        return [file.name for file in folders_files]
+        return filtered_files
 
-    def _compress_files(self, files_to_compress: list[str]) -> str:
+    def _compress_files(self, files_to_compress: list[Path]) -> str:
         # Get the system temp directory
         temp_dir = tempfile.gettempdir()
 
@@ -62,9 +62,11 @@ class SyncService:
         zip_path = os.path.join(temp_dir, zip_name)
 
         # Create the zip file
+        logging.info(f"Compressing {len(files_to_compress)} files to '{zip_path}'")
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for file in files_to_compress:
                 # Add file with only its basename (not full path)
-                zf.write(file, os.path.basename(file))
+                zf.write(file, file.relative_to(self.folder.local_path))
 
+        logging.info("Compression completed")
         return zip_path
