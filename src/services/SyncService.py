@@ -1,6 +1,6 @@
+import fnmatch
 import logging
 import os.path
-import re
 import tempfile
 import zipfile
 from datetime import datetime
@@ -16,7 +16,7 @@ class SyncService:
         self.folder = folder
 
     def sync_folder(self):
-        logging.info(f"Starting sync for folder: {self.folder.name}")
+        logging.info(f"Starting sync for folder: {self.folder.name}'")
         files = self._get_files()
         logging.info(f"Found {len(files)} files to sync")
         print(files)
@@ -27,6 +27,10 @@ class SyncService:
         # TODO: upload files to cloud provider
 
     def _get_files(self) -> list[str]:
+        if not os.path.exists(self.folder.local_path):
+            logging.error(f"Folder does not exist: '{self.folder.local_path}'")
+            return []
+
         folders_files = Path(self.folder.local_path).rglob("*")
 
         # Exclude files matching any of the exclude patterns
@@ -34,10 +38,16 @@ class SyncService:
             filtered_files = []
 
             for file in folders_files:
+                # Check if the file matches any exclude pattern
+                relative_path = str(file.relative_to(self.folder.local_path))
+                should_exclude = False
                 for pattern in self.folder.exclude_patterns:
-                    # Check if the file matches the pattern
-                    if not re.match(pattern, str(file.relative_to(self.folder.local_path))):
-                        filtered_files.append(file)
+                    if fnmatch.fnmatch(relative_path, pattern):
+                        should_exclude = True
+                        break
+
+                if not should_exclude:
+                    filtered_files.append(file)
 
             return filtered_files
 

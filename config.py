@@ -54,7 +54,7 @@ class FoldersConfig:
             raise FileNotFoundError(f"{file_path} not found")
 
         # load the yaml file
-        with open(file_path, "r") as config_file:
+        with open(file_path, "r", encoding="utf-8") as config_file:
             config = yaml.safe_load(config_file)
 
         # verify if 'sync' section exists
