@@ -6,6 +6,7 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 
+from src.dao.get_clouddao_from_cloud_enum import get_clouddao_from_cloud_enum
 from src.models.sync_parameters import FolderParameter
 
 
@@ -16,14 +17,18 @@ class SyncService:
         self.folder = folder
 
     def sync_folder(self):
+        # Find files
         logging.info(f"Starting sync for folder: {self.folder.name}'")
         files = self._get_files()
         logging.info(f"Found {len(files)} files to sync")
 
+        # Compress files if needed
         if self.folder.compress:
             files = [self._compress_files(files)]
 
-        # TODO: upload files to cloud provider
+        # Upload files
+        dao = get_clouddao_from_cloud_enum(self.folder.cloud_provider)
+        dao.upload_files()
 
     def _get_files(self) -> list[Path]:
         if not os.path.exists(self.folder.local_path):

@@ -1,5 +1,6 @@
 import logging
 import os.path
+from pathlib import Path
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -22,7 +23,7 @@ class GDriveCloudDAO(CloudDAO):
     _instance = None
     gdrive_service: Resource
 
-    def upload_files(self):
+    def upload_files(self, folder: str, files: list[Path]):
         raise NotImplemented()
 
     def download_files(self):
