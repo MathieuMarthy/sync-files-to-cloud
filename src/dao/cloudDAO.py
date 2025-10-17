@@ -4,7 +4,7 @@ from pathlib import Path
 
 class CloudDAO(ABC):
 
-    def upload_files(self, folder: str, files: list[Path]):
+    def upload_files(self, remote_folder: str, files: list[Path]):
         pass
 
     def download_files(self):

@@ -28,7 +28,8 @@ class SyncService:
 
         # Upload files
         dao = get_clouddao_from_cloud_enum(self.folder.cloud_provider)
-        dao.upload_files()
+        dao.init_connection()
+        dao.upload_files(self.folder.remote_path, files)
 
     def _get_files(self) -> list[Path]:
         if not os.path.exists(self.folder.local_path):
