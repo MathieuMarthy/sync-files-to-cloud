@@ -24,11 +24,27 @@ class GDriveCloudDAO(CloudDAO):
     _instance = None
     gdrive_service: Resource
 
-    def upload_files(self, remote_folder: str, files: list[Path]):
+    def upload_files(self, remote_folder: str, files: list[Path], local_base_path: Path = None):
         # Get or create the folder ID from the remote_path
         folder_id = self._get_or_create_folder(remote_folder)
 
         for file in files:
+            # Determine the target folder for this file
+            if local_base_path and file.is_relative_to(local_base_path):
+                # Calculate relative path from base path
+                relative_path = file.relative_to(local_base_path)
+                # Get the parent directory of the file (if any)
+                if relative_path.parent != Path("."):
+                    # File is in a subdirectory, create the full path
+                    target_folder_path = f"{remote_folder.rstrip('/')}/{relative_path.parent.as_posix()}"
+                    target_folder_id = self._get_or_create_folder(target_folder_path)
+                else:
+                    # File is at the root of local_base_path
+                    target_folder_id = folder_id
+            else:
+                # No base path provided, use root folder
+                target_folder_id = folder_id
+
             name = os.path.basename(str(file))
             # Escape single quotes for the Drive query
             q_name = name.replace("'", "\\'")
@@ -37,7 +53,7 @@ class GDriveCloudDAO(CloudDAO):
             local_md5 = utils.calculate_md5(file)
 
             # Search for an existing file with the same name in the target folder (not trashed)
-            query = f"name = '{q_name}' and '{folder_id}' in parents and trashed = false"
+            query = f"name = '{q_name}' and '{target_folder_id}' in parents and trashed = false"
             results = self.gdrive_service.files().list(
                 q=query,
                 spaces="drive",
@@ -69,7 +85,7 @@ class GDriveCloudDAO(CloudDAO):
                 media = googleapiclient.http.MediaFileUpload(str(file), resumable=True)
                 file_metadata = {
                     "name": name,
-                    "parents": [folder_id]
+                    "parents": [target_folder_id]
                 }
                 uploaded_file = self.gdrive_service.files().create(
                     body=file_metadata,

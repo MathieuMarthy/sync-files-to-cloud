@@ -24,11 +24,14 @@ class SyncService:
         # Compress files if needed
         if self.folder.compress:
             files = [self._compress_files(files)]
+            local_base_path = None  # No structure preservation needed for zip
+        else:
+            local_base_path = Path(self.folder.local_path)
 
         # Upload files
         dao = get_clouddao_from_cloud_enum(self.folder.cloud_provider)
         dao.init_connection()
-        dao.upload_files(self.folder.remote_path, files)
+        dao.upload_files(self.folder.remote_path, files, local_base_path)
         logging.info(f"Sync completed for folder: '{self.folder.name}'")
 
     def _get_files(self) -> list[Path]:
