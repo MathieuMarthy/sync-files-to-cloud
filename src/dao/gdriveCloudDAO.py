@@ -24,7 +24,14 @@ class GDriveCloudDAO(CloudDAO):
     _instance = None
     gdrive_service: Resource
 
+    def __init__(self):
+        super().__init__()
+        self._folder_cache = {}  # Cache for folder IDs: {folder_path: folder_id}
+
     def upload_files(self, remote_folder: str, files: list[Path], local_base_path: Path = None):
+        # Clear cache at the beginning of each upload session
+        self._folder_cache.clear()
+
         # Get or create the folder ID from the remote_path
         folder_id = self._get_or_create_folder(remote_folder)
 
@@ -109,20 +116,33 @@ class GDriveCloudDAO(CloudDAO):
     def _get_or_create_folder(self, folder_path: str) -> str:
         """
         Get or create a folder in Google Drive from a path like "/images" or "/backup/photos".
-        Returns the folder ID.
+        Returns the folder ID. Uses cache to avoid repeated lookups.
         """
-        # Remove leading/trailing slashes and split the path
-        folder_path = folder_path.strip("/")
+        # Check cache first
+        if folder_path in self._folder_cache:
+            return self._folder_cache[folder_path]
 
-        if not folder_path:
+        # Remove leading/trailing slashes and split the path
+        folder_path_normalized = folder_path.strip("/")
+
+        if not folder_path_normalized:
             # If empty path, return root folder ("root")
+            self._folder_cache[folder_path] = "root"
             return "root"
 
-        folder_names = folder_path.split("/")
+        folder_names = folder_path_normalized.split("/")
         parent_id = "root"
 
         # Navigate/create each folder in the path
-        for folder_name in folder_names:
+        for i, folder_name in enumerate(folder_names):
+            # Build the path up to this point for caching
+            current_path = "/" + "/".join(folder_names[:i + 1])
+
+            # Check if this intermediate path is already cached
+            if current_path in self._folder_cache:
+                parent_id = self._folder_cache[current_path]
+                continue
+
             # Search for the folder
             query = f"name='{folder_name}' and '{parent_id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
             results = self.gdrive_service.files().list(
@@ -151,6 +171,11 @@ class GDriveCloudDAO(CloudDAO):
                 parent_id = folder["id"]
                 logging.info(f"Created folder '{folder_name}' with ID: {parent_id}")
 
+            # Cache this path
+            self._folder_cache[current_path] = parent_id
+
+        # Cache the final full path
+        self._folder_cache[folder_path] = parent_id
         return parent_id
 
     def download_files(self):
