@@ -3,7 +3,6 @@ import logging
 import os.path
 import tempfile
 import zipfile
-from datetime import datetime
 from pathlib import Path
 
 from src.dao.get_clouddao_from_cloud_enum import get_clouddao_from_cloud_enum
@@ -64,7 +63,7 @@ class SyncService:
         temp_dir = tempfile.gettempdir()
 
         # Full path to the zip file
-        zip_name = f"{self.folder.name}-{datetime.now().strftime('%d-%m-%y_%I-%M-%S')}.zip"
+        zip_name = f"{self.folder.name}.zip"
         zip_path = os.path.join(temp_dir, zip_name)
 
         # Create the zip file

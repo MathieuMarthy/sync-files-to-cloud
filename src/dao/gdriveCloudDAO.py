@@ -29,18 +29,42 @@ class GDriveCloudDAO(CloudDAO):
         folder_id = self._get_or_create_folder(remote_folder)
 
         for file in files:
-            file_metadata = {
-                "name": os.path.basename(str(file)),
-                "parents": [folder_id]
-            }
-            media = googleapiclient.http.MediaFileUpload(str(file), resumable=True)
-            uploaded_file = self.gdrive_service.files().create(
-                body=file_metadata,
-                media_body=media,
-                fields="id"
+            name = os.path.basename(str(file))
+            # Escape single quotes for the Drive query
+            q_name = name.replace("'", "\\'")
+
+            # Search for an existing file with the same name in the target folder (not trashed)
+            query = f"name = '{q_name}' and '{folder_id}' in parents and trashed = false"
+            results = self.gdrive_service.files().list(
+                q=query,
+                spaces="drive",
+                fields="files(id, name)"
             ).execute()
 
-            logging.info(f"File '{file}' uploaded with ID: {uploaded_file['id']}")
+            items = results.get("files", [])
+            media = googleapiclient.http.MediaFileUpload(str(file), resumable=True)
+
+            if items:
+                # Replace existing file (update content)
+                existing_id = items[0]["id"]
+                updated_file = self.gdrive_service.files().update(
+                    fileId=existing_id,
+                    media_body=media,
+                    fields="id"
+                ).execute()
+                logging.info(f"File '{file}' updated with ID: {updated_file['id']}")
+            else:
+                # Create new file in the target folder
+                file_metadata = {
+                    "name": name,
+                    "parents": [folder_id]
+                }
+                uploaded_file = self.gdrive_service.files().create(
+                    body=file_metadata,
+                    media_body=media,
+                    fields="id"
+                ).execute()
+                logging.info(f"File '{file}' uploaded with ID: {uploaded_file['id']}")
 
     def _get_or_create_folder(self, folder_path: str) -> str:
         """
