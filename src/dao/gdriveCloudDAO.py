@@ -29,70 +29,82 @@ class GDriveCloudDAO(CloudDAO):
         folder_id = self._get_or_create_folder(remote_folder)
 
         for file in files:
-            # Determine the target folder for this file
-            if local_base_path and file.is_relative_to(local_base_path):
-                # Calculate relative path from base path
-                relative_path = file.relative_to(local_base_path)
-                # Get the parent directory of the file (if any)
-                if relative_path.parent != Path("."):
-                    # File is in a subdirectory, create the full path
-                    target_folder_path = f"{remote_folder.rstrip('/')}/{relative_path.parent.as_posix()}"
-                    target_folder_id = self._get_or_create_folder(target_folder_path)
-                else:
-                    # File is at the root of local_base_path
-                    target_folder_id = folder_id
-            else:
-                # No base path provided, use root folder
-                target_folder_id = folder_id
+            target_folder_id = self._determine_target_folder(file, remote_folder, folder_id, local_base_path)
+            self._upload_single_file(file, target_folder_id)
 
-            name = os.path.basename(str(file))
-            # Escape single quotes for the Drive query
-            q_name = name.replace("'", "\\'")
+    def _determine_target_folder(self, file: Path, remote_folder: str, default_folder_id: str,
+                                 local_base_path: Path = None) -> str:
+        """Determine the target folder ID for a file based on its local path structure."""
+        if local_base_path and file.is_relative_to(local_base_path):
+            relative_path = file.relative_to(local_base_path)
+            if relative_path.parent != Path("."):
+                # File is in a subdirectory, create the full path
+                target_folder_path = f"{remote_folder.rstrip('/')}/{relative_path.parent.as_posix()}"
+                return self._get_or_create_folder(target_folder_path)
 
-            # Calculate MD5 hash of the local file
-            local_md5 = utils.calculate_md5(file)
+        return default_folder_id
 
-            # Search for an existing file with the same name in the target folder (not trashed)
-            query = f"name = '{q_name}' and '{target_folder_id}' in parents and trashed = false"
-            results = self.gdrive_service.files().list(
-                q=query,
-                spaces="drive",
-                fields="files(id, name, md5Checksum)"
+    def _upload_single_file(self, file: Path, target_folder_id: str):
+        """Upload or update a single file to Google Drive."""
+        name = os.path.basename(str(file))
+        q_name = name.replace("'", "\\'")  # Escape single quotes for the Drive query
+
+        # Check if file exists and needs update
+        existing_file_id = self._find_existing_file(name, q_name, target_folder_id)
+
+        if existing_file_id:
+            self._update_file_if_changed(file, name, existing_file_id)
+        else:
+            self._create_new_file(file, name, target_folder_id)
+
+    def _find_existing_file(self, name: str, q_name: str, target_folder_id: str) -> str | None:
+        """Search for an existing file in the target folder. Returns file ID if found, None otherwise."""
+        query = f"name = '{q_name}' and '{target_folder_id}' in parents and trashed = false"
+        results = self.gdrive_service.files().list(
+            q=query,
+            spaces="drive",
+            fields="files(id, name, md5Checksum)"
+        ).execute()
+
+        items = results.get("files", [])
+        return items[0]["id"] if items else None
+
+    def _update_file_if_changed(self, file: Path, name: str, existing_file_id: str):
+        """Update a file only if its content has changed (based on MD5 hash)."""
+        local_md5 = utils.calculate_md5(file)
+
+        # Get remote file metadata
+        remote_file = self.gdrive_service.files().get(
+            fileId=existing_file_id,
+            fields="md5Checksum"
+        ).execute()
+
+        remote_md5 = remote_file.get("md5Checksum")
+
+        if remote_md5 == local_md5:
+            logging.info(f"File '{name}' is already up to date, skipping upload")
+        else:
+            media = googleapiclient.http.MediaFileUpload(str(file), resumable=True)
+            updated_file = self.gdrive_service.files().update(
+                fileId=existing_file_id,
+                media_body=media,
+                fields="id"
             ).execute()
+            logging.info(f"File '{name}' has been updated with ID: {updated_file['id']}")
 
-            items = results.get("files", [])
-
-            if items:
-                # File exists, check if content has changed
-                existing_id = items[0]["id"]
-                remote_md5 = items[0].get("md5Checksum")
-
-                if remote_md5 == local_md5:
-                    # File hasn't changed, skip upload
-                    logging.info(f"File '{name}' is already up to date, skipping upload")
-                    continue
-                else:
-                    # File has changed, update it
-                    media = googleapiclient.http.MediaFileUpload(str(file), resumable=True)
-                    updated_file = self.gdrive_service.files().update(
-                        fileId=existing_id,
-                        media_body=media,
-                        fields="id"
-                    ).execute()
-                    logging.info(f"File '{name}' has been updated with ID: {updated_file['id']}")
-            else:
-                # Create new file in the target folder
-                media = googleapiclient.http.MediaFileUpload(str(file), resumable=True)
-                file_metadata = {
-                    "name": name,
-                    "parents": [target_folder_id]
-                }
-                uploaded_file = self.gdrive_service.files().create(
-                    body=file_metadata,
-                    media_body=media,
-                    fields="id"
-                ).execute()
-                logging.info(f"File '{name}' uploaded with ID: {uploaded_file['id']}")
+    def _create_new_file(self, file: Path, name: str, target_folder_id: str):
+        """Create a new file in Google Drive."""
+        media = googleapiclient.http.MediaFileUpload(str(file), resumable=True)
+        file_metadata = {
+            "name": name,
+            "parents": [target_folder_id]
+        }
+        uploaded_file = self.gdrive_service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields="id"
+        ).execute()
+        logging.info(f"File '{name}' uploaded with ID: {uploaded_file['id']}")
 
     def _get_or_create_folder(self, folder_path: str) -> str:
         """
