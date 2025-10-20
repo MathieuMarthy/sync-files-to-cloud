@@ -25,6 +25,10 @@ class SyncService:
         files = self._get_files()
         logging.info(f"Found {len(files)} files to sync")
 
+        if len(files) == 0:
+            logging.info("No files to sync. Exiting.")
+            return
+
         # Compress files if needed
         if self.folder.compress:
             files = [self._compress_files(files)]
@@ -39,6 +43,11 @@ class SyncService:
     def _get_files(self) -> list[Path]:
         if not os.path.exists(self.folder.local_path):
             logging.error(f"Folder does not exist: '{self.folder.local_path}'")
+            return []
+
+        # check if the path exists
+        if not os.path.exists(self.folder.local_path):
+            logging.error(f"Local path does not exist: '{self.folder.local_path}'")
             return []
 
         local_path = Path(self.folder.local_path)
