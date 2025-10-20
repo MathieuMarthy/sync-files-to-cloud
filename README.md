@@ -72,7 +72,7 @@ sync:
     cloud_provider: "GoogleDrive"
     sync_interval: 3600  # in seconds (3600 = 1 hour)
     compress: true
-    local_path: "C:/Users/Username/Documents/Images"
+    local_path: "C:/Users/Username/Documents/Images" # Absolute path to local folder, if you use backslashes on windows, double them (\\)
     remote_path: "/images"
     exclude_patterns:
       - "*.tmp"
