@@ -39,10 +39,16 @@ class SyncService:
             logging.error(f"Folder does not exist: '{self.folder.local_path}'")
             return []
 
-        folders_files = Path(self.folder.local_path).rglob("*")
+        local_path = Path(self.folder.local_path)
+
+        # if it's a file, just return that file
+        if local_path.is_file():
+            folders_files = [local_path]
+        else:
+            folders_files = list(local_path.rglob("*"))
         folders_files = [file for file in folders_files if file.is_file()]
 
-        if len(self.folder.exclude_patterns) == 0:
+        if self.folder.exclude_patterns is None or len(self.folder.exclude_patterns) == 0:
             return folders_files
 
         # Filter files based on exclude patterns
