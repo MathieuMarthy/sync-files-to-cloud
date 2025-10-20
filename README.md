@@ -28,12 +28,22 @@ basis.
 
 <br>
 
-2. Clone the repository:
+2. Get the code:
+
+**Option A: Clone the repository**
 
 ```bash
 git clone <repository-url>
 cd sync-files-to-cloud
 ```
+
+**Option B: Download from releases**
+
+- Go to the [Releases page](https://github.com/MathieuMarthy/sync-files-to-cloud/releases)
+- Download the latest release (Source code.zip or Source code.tar.gz)
+- Extract the archive and navigate to the folder
+
+<br>
 
 3. Create and activate a virtual environment:
 
