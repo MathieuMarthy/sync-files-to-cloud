@@ -41,7 +41,7 @@ def start_sync_folder(folder: FolderParameter):
             f"Failed to connect to cloud provider for folder: {folder.name}, send a notification to reconnect")
 
         # Use asyncio.run_coroutine_threadsafe to run the async notification
-        future = asyncio.run_coroutine_threadsafe(
+        asyncio.run_coroutine_threadsafe(
             NotificationService.send_reconnection_notification(
                 folder.cloud_provider,
                 lambda: reconnect_and_sync(folder)
