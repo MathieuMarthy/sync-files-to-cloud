@@ -16,6 +16,10 @@ class SyncService:
         self.folder = folder
 
     def sync_folder(self):
+        # Initialize cloud connection
+        dao = get_clouddao_from_cloud_enum(self.folder.cloud_provider)
+        dao.init_connection()
+
         # Find files
         logging.info(f"Starting sync for folder: {self.folder.name}'")
         files = self._get_files()
@@ -29,8 +33,6 @@ class SyncService:
             local_base_path = Path(self.folder.local_path)
 
         # Upload files
-        dao = get_clouddao_from_cloud_enum(self.folder.cloud_provider)
-        dao.init_connection()
         dao.upload_files(self.folder.remote_path, files, local_base_path)
         logging.info(f"Sync completed for folder: '{self.folder.name}'")
 
