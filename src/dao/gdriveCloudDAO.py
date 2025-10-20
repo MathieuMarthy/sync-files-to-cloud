@@ -10,6 +10,7 @@ from googleapiclient.discovery import Resource, build
 
 from src import utils
 from src.dao.cloudDAO import CloudDAO
+from src.exceptions.DaoException import DaoConnectionException
 
 # define the scopes for Google Drive API
 # If modifying these scopes, delete the file token.json.
@@ -181,8 +182,7 @@ class GDriveCloudDAO(CloudDAO):
     def download_files(self):
         raise NotImplemented()
 
-    def init_connection(self):
-        """Establishes a connection to Google Drive API and save the credentials in a file."""
+    def init_connection(self, can_open_connection_page: bool = False):
         # code adapted from https://developers.google.com/workspace/drive/api/quickstart/python
 
         creds = None
@@ -198,14 +198,16 @@ class GDriveCloudDAO(CloudDAO):
             if creds and creds.expired and creds.refresh_token:
                 logging.info("GDrive: token expired, refreshing the token")
                 creds.refresh(Request())
-            else:
+            elif can_open_connection_page:
                 logging.info("GDrive: no valid token found, starting the login flow")
                 flow = InstalledAppFlow.from_client_secrets_file(
                     utils.path(CREDENTIALS_PATH), SCOPES
                 )
                 creds = flow.run_local_server(port=0)
+            else:
+                raise DaoConnectionException("GDrive: need to authenticate")
 
-            # Save the credentials for the next run
+                # Save the credentials for the next run
             with open(utils.path(TOKEN_PATH), "w") as token:
                 token.write(creds.to_json())
 
