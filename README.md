@@ -120,18 +120,22 @@ To automatically run the script when your computer starts:
 
 <details>
 <summary>Windows Instructions</summary>
-1. Create a batch file `start_sync.bat` in the project directory:
 
-```batch
-@echo off
-cd /d C:\path\to\sync-files-to-cloud
-call venv\Scripts\activate
-python main.py
+1. Setup the powershell script
+
+Go in the `/scripts` folder, open `activate-scheduled-task.ps1`and edit the line 3:
+
+```powershell
+$projectPath = "path to the project" # Put the absolute path to this project
 ```
 
-2. Press `Win + R`, type `shell:startup`, and press Enter
-3. Create a shortcut to `start_sync.bat` in the Startup folder
-4. (Optional) Right-click the shortcut → Properties → Run: Minimized
+2. Run the script as administrator
+
+open a powershell terminal as administator and run
+
+```powershell
+path/to/activate-scheduled-task.ps1
+```
 
 </details>
 
@@ -141,16 +145,19 @@ python main.py
 
 1. Create a systemd service file `/etc/systemd/system/sync-files.service`:
 
+don't forget to replace the paths and username
+
 ```ini
 [Unit]
 Description = Sync Files to Cloud
 After = network.target
 
 [Service]
-Type = simple
-User = your-username
+; replace the paths below with the project path
+ExecStart = /path/to/sync-files-to-cloud/venv/bin/python /path/to/sync-files-to-cloud/main.py
 WorkingDirectory = /path/to/sync-files-to-cloud
-ExecStart = /path/to/sync-files-to-cloud/venv/bin/python main.py
+; Replace 'your-username' with the appropriate user
+User = your-username
 Restart = on-failure
 
 [Install]
