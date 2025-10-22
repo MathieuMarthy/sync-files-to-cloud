@@ -6,6 +6,7 @@ import zipfile
 from pathlib import Path
 
 from src.dao.get_clouddao_from_cloud_enum import get_clouddao_from_cloud_enum
+from src.exceptions.DaoException import NoCredentialFileException, NoInternet
 from src.models.sync_parameters import FolderParameter
 
 
@@ -16,7 +17,7 @@ class SyncService:
         self.folder = folder
 
     def sync_folder(self):
-        logging.info(f"Starting sync for folder: {self.folder.name}'")
+        logging.info(f"Starting sync for folder: '{self.folder.name}'")
 
         # Initialize cloud connection
         dao = get_clouddao_from_cloud_enum(self.folder.cloud_provider)
@@ -27,7 +28,7 @@ class SyncService:
         logging.debug(f"Found {len(files)} files to sync")
 
         if len(files) == 0:
-            logging.debug("No files to sync. Exiting.")
+            logging.info("No files to sync. Exiting.")
             return
 
         # Compress files if needed
@@ -38,12 +39,15 @@ class SyncService:
             local_base_path = Path(self.folder.local_path)
 
         # Upload files
-        dao.upload_files(self.folder.remote_path, files, local_base_path)
-        logging.info(f"Sync {len(files)} files for folder: '{self.folder.name}'")
+        try:
+            dao.upload_files(self.folder.remote_path, files, local_base_path)
+            logging.info(f"Sync {len(files)} files for folder: '{self.folder.name}'")
+        except NoInternet as e:
+            logging.error(f"failed to upload files to the cloud, error: {str(e)}")
 
     def _get_files(self) -> list[Path]:
         if not os.path.exists(self.folder.local_path):
-            logging.error(f"Folder does not exist: '{self.folder.local_path}'")
+            logging.warning(f"Folder does not exist: '{self.folder.local_path}'")
             return []
 
         local_path = Path(self.folder.local_path)

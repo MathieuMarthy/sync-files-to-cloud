@@ -7,10 +7,12 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import Resource, build
+from httplib2 import ServerNotFoundError
 
 from src import utils
 from src.dao.cloudDAO import CloudDAO
-from src.exceptions.DaoException import DaoConnectionException
+from src.exceptions.DaoException import DaoConnectionException, AuthentificationRequiredException, \
+    NoCredentialFileException, NoInternet
 
 # define the scopes for Google Drive API
 # If modifying these scopes, delete the file token.json.
@@ -34,11 +36,15 @@ class GDriveCloudDAO(CloudDAO):
         self._folder_cache.clear()
 
         # Get or create the folder ID from the remote_path
-        folder_id = self._get_or_create_folder(remote_folder)
+        try:
+            folder_id = self._get_or_create_folder(remote_folder)
 
-        for file in files:
-            target_folder_id = self._determine_target_folder(file, remote_folder, folder_id, local_base_path)
-            self._upload_single_file(file, target_folder_id)
+            for file in files:
+                target_folder_id = self._determine_target_folder(file, remote_folder, folder_id, local_base_path)
+                self._upload_single_file(file, target_folder_id)
+        except ServerNotFoundError:
+            raise NoInternet("Don't have access to internet or the cloud provider api is down")
+
 
     def _determine_target_folder(self, file: Path, remote_folder: str, default_folder_id: str,
                                  local_base_path: Path = None) -> str:
@@ -58,14 +64,14 @@ class GDriveCloudDAO(CloudDAO):
         q_name = name.replace("'", "\\'")  # Escape single quotes for the Drive query
 
         # Check if file exists and needs update
-        existing_file_id = self._find_existing_file(name, q_name, target_folder_id)
+        existing_file_id = self._find_existing_file(q_name, target_folder_id)
 
         if existing_file_id:
             self._update_file_if_changed(file, name, existing_file_id)
         else:
             self._create_new_file(file, name, target_folder_id)
 
-    def _find_existing_file(self, name: str, q_name: str, target_folder_id: str) -> str | None:
+    def _find_existing_file(self, q_name: str, target_folder_id: str) -> str | None:
         """Search for an existing file in the target folder. Returns file ID if found, None otherwise."""
         query = f"name = '{q_name}' and '{target_folder_id}' in parents and trashed = false"
         results = self.gdrive_service.files().list(
@@ -200,12 +206,19 @@ class GDriveCloudDAO(CloudDAO):
                 creds.refresh(Request())
             elif can_open_connection_page:
                 logging.debug("GDrive: no valid token found, starting the login flow")
+
+                if not os.path.exists(utils.path(CREDENTIALS_PATH)):
+                    raise NoCredentialFileException("GDrive: missing credentials file for authentication. Please provide the file at {CREDENTIALS_PATH}")
+
                 flow = InstalledAppFlow.from_client_secrets_file(
                     utils.path(CREDENTIALS_PATH), SCOPES
                 )
                 creds = flow.run_local_server(port=0)
             else:
-                raise DaoConnectionException("GDrive: need to authenticate")
+                if not os.path.exists(utils.path(CREDENTIALS_PATH)):
+                    raise NoCredentialFileException(f"GDrive: missing credentials file for authentication. Please provide the file at {CREDENTIALS_PATH}")
+
+                raise AuthentificationRequiredException("GDrive: need to authenticate in the browser")
 
                 # Save the credentials for the next run
             with open(utils.path(TOKEN_PATH), "w") as token:
