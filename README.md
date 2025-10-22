@@ -99,6 +99,9 @@ sync:
 - **remote_path**: Destination path in the cloud storage
 - **exclude_patterns**: List of patterns to exclude files (supports wildcards like `*.tmp`, `folder/*`)
 
+⚠️ If you change the configuration while the application is running, you need to restart it to apply the changes.  
+*See the 'usage' section for commands to restart the application depending on your OS.*
+
 ## Usage
 
 Run the application:
@@ -137,6 +140,15 @@ open a powershell terminal as administator and run
 path/to/activate-scheduled-task.ps1
 ```
 
+<br>
+
+#### To deactivate the scheduled task
+
+you can run the deactivation script `scripts\remove-scheduled-task.ps1`
+
+#### To restart the application
+
+you can run the restart script `scripts\restart-scheduled-task.ps1`
 </details>
 
 
@@ -169,6 +181,25 @@ WantedBy = multi-user.target
 ```bash
 sudo systemctl enable sync-files.service
 sudo systemctl start sync-files.service
+```
+
+<br>
+
+#### Deactivate the service
+
+To stop and disable the service:
+
+```bash
+sudo systemctl stop sync-files.service
+sudo systemctl disable sync-files.service
+```
+
+#### Restart the application
+
+To restart the service:
+
+```bash
+sudo systemctl restart sync-files.service
 ```
 
 </details>
