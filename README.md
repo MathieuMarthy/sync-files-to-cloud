@@ -50,21 +50,26 @@ cd sync-files-to-cloud
 ```bash
 # Create virtual environment
 python -m venv venv
+```
 
-# Activate virtual environment
-# On Windows:
+
+4. Activate virtual environment
+#### On Windows:
+```powershell
 venv\Scripts\activate
-# On macOS/Linux:
+```
+#### On macOS/Linux:
+```bash
 source venv/bin/activate
 ```
 
-4. Install required dependencies:
+5. Install required dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-5. Set up cloud provider credentials:
+6. Set up cloud provider credentials:
     - For Google Drive: Follow the [Google Drive Setup Guide](documentation/connect-to-google-drive.md)
     - Place your `gdrive_credentials.json` file in the `credentials/` folder
 
@@ -142,8 +147,6 @@ path/to/activate-scheduled-task.ps1
 
 ⚠️ *If you have issues running the script due to execution policies, you can right-click on the script → Properties →
 Unblock → Apply. Then try running it again.*
-
-```powershell
 
 <br>
 
