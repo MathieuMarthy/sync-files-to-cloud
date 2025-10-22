@@ -90,7 +90,7 @@ class GDriveCloudDAO(CloudDAO):
         remote_md5 = remote_file.get("md5Checksum")
 
         if remote_md5 == local_md5:
-            logging.info(f"File '{name}' is already up to date, skipping upload")
+            logging.debug(f"File '{name}' is already up to date, skipping upload")
         else:
             media = googleapiclient.http.MediaFileUpload(str(file), resumable=True)
             updated_file = self.gdrive_service.files().update(
@@ -98,7 +98,7 @@ class GDriveCloudDAO(CloudDAO):
                 media_body=media,
                 fields="id"
             ).execute()
-            logging.info(f"File '{name}' has been updated with ID: {updated_file['id']}")
+            logging.debug(f"File '{name}' has been updated with ID: {updated_file['id']}")
 
     def _create_new_file(self, file: Path, name: str, target_folder_id: str):
         """Create a new file in Google Drive."""
@@ -112,7 +112,7 @@ class GDriveCloudDAO(CloudDAO):
             media_body=media,
             fields="id"
         ).execute()
-        logging.info(f"File '{name}' uploaded with ID: {uploaded_file['id']}")
+        logging.debug(f"File '{name}' uploaded with ID: {uploaded_file['id']}")
 
     def _get_or_create_folder(self, folder_path: str) -> str:
         """
@@ -157,7 +157,7 @@ class GDriveCloudDAO(CloudDAO):
             if items:
                 # Folder exists, use its ID
                 parent_id = items[0]["id"]
-                logging.info(f"Found existing folder '{folder_name}' with ID: {parent_id}")
+                logging.debug(f"Found existing folder '{folder_name}' with ID: {parent_id}")
             else:
                 # Folder doesn't exist, create it
                 folder_metadata = {
@@ -170,7 +170,7 @@ class GDriveCloudDAO(CloudDAO):
                     fields="id"
                 ).execute()
                 parent_id = folder["id"]
-                logging.info(f"Created folder '{folder_name}' with ID: {parent_id}")
+                logging.debug(f"Created folder '{folder_name}' with ID: {parent_id}")
 
             # Cache this path
             self._folder_cache[current_path] = parent_id
@@ -196,10 +196,10 @@ class GDriveCloudDAO(CloudDAO):
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                logging.info("GDrive: token expired, refreshing the token")
+                logging.debug("GDrive: token expired, refreshing the token")
                 creds.refresh(Request())
             elif can_open_connection_page:
-                logging.info("GDrive: no valid token found, starting the login flow")
+                logging.debug("GDrive: no valid token found, starting the login flow")
                 flow = InstalledAppFlow.from_client_secrets_file(
                     utils.path(CREDENTIALS_PATH), SCOPES
                 )
@@ -212,4 +212,4 @@ class GDriveCloudDAO(CloudDAO):
                 token.write(creds.to_json())
 
         self.gdrive_service = build("drive", "v3", credentials=creds)
-        logging.info("GDrive: connection established")
+        logging.debug("GDrive: connection established")

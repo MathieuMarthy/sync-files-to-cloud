@@ -28,12 +28,22 @@ basis.
 
 <br>
 
-2. Clone the repository:
+2. Get the code:
+
+**Option A: Clone the repository**
 
 ```bash
 git clone <repository-url>
 cd sync-files-to-cloud
 ```
+
+**Option B: Download from releases**
+
+- Go to the [Releases page](https://github.com/MathieuMarthy/sync-files-to-cloud/releases)
+- Download the latest release (Source code.zip or Source code.tar.gz)
+- Extract the archive and navigate to the folder
+
+<br>
 
 3. Create and activate a virtual environment:
 
@@ -70,7 +80,7 @@ logging:
 sync:
   - name: my_images
     cloud_provider: "GoogleDrive"
-    sync_interval: 3600  # in seconds (3600 = 1 hour)
+    sync_interval: 60  # in minutes (60 = 1 hour)
     compress: true
     local_path: "C:/Users/Username/Documents/Images" # Absolute path to local folder, if you use backslashes on windows, double them (\\)
     remote_path: "/images"
@@ -88,6 +98,9 @@ sync:
 - **local_path**: Absolute path to the local folder to sync
 - **remote_path**: Destination path in the cloud storage
 - **exclude_patterns**: List of patterns to exclude files (supports wildcards like `*.tmp`, `folder/*`)
+
+⚠️ If you change the configuration while the application is running, you need to restart it to apply the changes.  
+*See the 'usage' section for commands to restart the application depending on your OS.*
 
 ## Usage
 
@@ -110,18 +123,49 @@ To automatically run the script when your computer starts:
 
 <details>
 <summary>Windows Instructions</summary>
-1. Create a batch file `start_sync.bat` in the project directory:
 
-```batch
-@echo off
-cd /d C:\path\to\sync-files-to-cloud
-call venv\Scripts\activate
-python main.py
+1. Setup the powershell script
+
+Go in the `/scripts` folder, open `activate-scheduled-task.ps1`and edit the line 3:
+
+```powershell
+$projectPath = "path to the project" # Put the absolute path to this project
 ```
 
-2. Press `Win + R`, type `shell:startup`, and press Enter
-3. Create a shortcut to `start_sync.bat` in the Startup folder
-4. (Optional) Right-click the shortcut → Properties → Run: Minimized
+2. Run the script as administrator
+
+open a powershell terminal as administator and run
+
+```powershell
+path/to/activate-scheduled-task.ps1
+```
+
+⚠️ *If you have issues running the script due to execution policies, you can right-click on the script → Properties →
+Unblock → Apply. Then try running it again.*
+
+```powershell
+
+<br>
+
+#### To deactivate the scheduled task
+
+you can run the deactivation script `scripts\remove-scheduled-task.ps1`
+
+#### To restart the application
+
+you can run the restart script `scripts\restart-scheduled-task.ps1`
+
+#### Start the application through the Task Scheduler
+
+```powershell
+Start-ScheduledTask -TaskName "Sync-files-task"
+```
+
+#### Stop the application through the Task Scheduler
+
+```powershell
+Stop-ScheduledTask -TaskName "Sync-files-task"
+```
 
 </details>
 
@@ -131,16 +175,19 @@ python main.py
 
 1. Create a systemd service file `/etc/systemd/system/sync-files.service`:
 
+don't forget to replace the paths and username
+
 ```ini
 [Unit]
 Description = Sync Files to Cloud
 After = network.target
 
 [Service]
-Type = simple
-User = your-username
+; replace the paths below with the project path
+ExecStart = /path/to/sync-files-to-cloud/venv/bin/pythonw /path/to/sync-files-to-cloud/main.py
 WorkingDirectory = /path/to/sync-files-to-cloud
-ExecStart = /path/to/sync-files-to-cloud/venv/bin/python main.py
+; Replace 'your-username' with the appropriate user
+User = your-username
 Restart = on-failure
 
 [Install]
@@ -152,6 +199,25 @@ WantedBy = multi-user.target
 ```bash
 sudo systemctl enable sync-files.service
 sudo systemctl start sync-files.service
+```
+
+<br>
+
+#### Deactivate the service
+
+To stop and disable the service:
+
+```bash
+sudo systemctl stop sync-files.service
+sudo systemctl disable sync-files.service
+```
+
+#### Restart the application
+
+To restart the service:
+
+```bash
+sudo systemctl restart sync-files.service
 ```
 
 </details>

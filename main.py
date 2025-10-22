@@ -19,7 +19,6 @@ logging.basicConfig(
     filename=projectConfig.log_file,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
-logging.getLogger().addHandler(logging.StreamHandler())
 
 # Global event loop for async operations
 event_loop = None
@@ -37,8 +36,9 @@ def start_sync_folder(folder: FolderParameter):
     try:
         sync_service.sync_folder()
     except DaoException:
-        logging.warning(
-            f"Failed to connect to cloud provider for folder: {folder.name}, send a notification to reconnect")
+        logging.info(
+            f"Failed to connect to cloud provider for folder: {folder.name}, send a notification to reconnect"
+        )
 
         # Use asyncio.run_coroutine_threadsafe to run the async notification
         asyncio.run_coroutine_threadsafe(
@@ -48,6 +48,8 @@ def start_sync_folder(folder: FolderParameter):
             ),
             event_loop
         )
+    except Exception as e:
+        logging.error(f"An unexpected error occurred during sync for folder: {folder.name}. Error: {str(e)}")
 
 
 def reconnect_and_sync(folder: FolderParameter):
@@ -59,6 +61,8 @@ def reconnect_and_sync(folder: FolderParameter):
         sync_service.sync_folder()
     except DaoException:
         logging.error(f"Reconnection failed for folder: {folder.name}, impossible to sync.")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred during sync for folder: {folder.name}. Error: {str(e)}")
 
 
 def main():
@@ -74,8 +78,6 @@ def main():
     # Initialize connections for each folder's cloud provider
     # to check if credentials are valid
     for folder_config in folders_config.folders_parameters:
-        logging.info(f"Processing folder: {folder_config.name}")
-
         # first run
         start_sync_folder(folder_config)
 

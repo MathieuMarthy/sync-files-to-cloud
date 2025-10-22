@@ -11,7 +11,7 @@ class NotificationService:
 
     @staticmethod
     async def send_reconnection_notification(cloud_provider: CloudProvider, reconnect_function: Callable = None):
-        logging.info(f"Sending reconnection notification for {cloud_provider.value}")
+        logging.debug(f"Sending reconnection notification for {cloud_provider.value}")
         await NotificationService.notifier.send(
             title="Reconnection Required",
             message=f"Please reconnect to {cloud_provider.value} to continue syncing files.",

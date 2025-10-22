@@ -24,12 +24,14 @@ class ProjectConfig:
         return cls._instance
 
     def _load_config_yaml(self, file_path: str = "config.yaml"):
+        absolute_path = os.path.join(ROOT_DIR, file_path)
+
         # check if config.yaml exists
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"{file_path} not found")
+        if not os.path.exists(absolute_path):
+            raise FileNotFoundError(f"{absolute_path} not found")
 
         # load the yaml file
-        with open(file_path, "r") as config_file:
+        with open(absolute_path, "r") as config_file:
             config = yaml.safe_load(config_file)
 
         # load logging configuration if present
@@ -48,13 +50,14 @@ class FoldersConfig:
 
     def _load_config_yaml(self, file_path: str = "config.yaml"):
         """Load configuration from a YAML file."""
+        absolute_path = os.path.join(ROOT_DIR, file_path)
 
         # check if config.yaml exists
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"{file_path} not found")
+        if not os.path.exists(absolute_path):
+            raise FileNotFoundError(f"{absolute_path} not found")
 
         # load the yaml file
-        with open(file_path, "r", encoding="utf-8") as config_file:
+        with open(absolute_path, "r", encoding="utf-8") as config_file:
             config = yaml.safe_load(config_file)
 
         # verify if 'sync' section exists

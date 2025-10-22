@@ -16,14 +16,19 @@ class SyncService:
         self.folder = folder
 
     def sync_folder(self):
+        logging.info(f"Starting sync for folder: {self.folder.name}'")
+
         # Initialize cloud connection
         dao = get_clouddao_from_cloud_enum(self.folder.cloud_provider)
         dao.init_connection()
 
         # Find files
-        logging.info(f"Starting sync for folder: {self.folder.name}'")
         files = self._get_files()
-        logging.info(f"Found {len(files)} files to sync")
+        logging.debug(f"Found {len(files)} files to sync")
+
+        if len(files) == 0:
+            logging.debug("No files to sync. Exiting.")
+            return
 
         # Compress files if needed
         if self.folder.compress:
@@ -34,17 +39,23 @@ class SyncService:
 
         # Upload files
         dao.upload_files(self.folder.remote_path, files, local_base_path)
-        logging.info(f"Sync completed for folder: '{self.folder.name}'")
+        logging.info(f"Sync {len(files)} files for folder: '{self.folder.name}'")
 
     def _get_files(self) -> list[Path]:
         if not os.path.exists(self.folder.local_path):
             logging.error(f"Folder does not exist: '{self.folder.local_path}'")
             return []
 
-        folders_files = Path(self.folder.local_path).rglob("*")
+        local_path = Path(self.folder.local_path)
+
+        # if it's a file, just return that file
+        if local_path.is_file():
+            folders_files = [local_path]
+        else:
+            folders_files = list(local_path.rglob("*"))
         folders_files = [file for file in folders_files if file.is_file()]
 
-        if len(self.folder.exclude_patterns) == 0:
+        if self.folder.exclude_patterns is None or len(self.folder.exclude_patterns) == 0:
             return folders_files
 
         # Filter files based on exclude patterns
@@ -73,11 +84,11 @@ class SyncService:
         zip_path = os.path.join(temp_dir, zip_name)
 
         # Create the zip file
-        logging.info(f"Compressing {len(files_to_compress)} files to '{zip_path}'")
+        logging.debug(f"Compressing {len(files_to_compress)} files to '{zip_path}'")
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for file in files_to_compress:
                 # Add file with only its basename (not full path)
                 zf.write(file, file.relative_to(self.folder.local_path))
 
-        logging.info("Compression completed")
+        logging.debug("Compression completed")
         return zip_path
