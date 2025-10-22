@@ -149,6 +149,19 @@ you can run the deactivation script `scripts\remove-scheduled-task.ps1`
 #### To restart the application
 
 you can run the restart script `scripts\restart-scheduled-task.ps1`
+
+#### Start the application through the Task Scheduler
+
+```powershell
+Start-ScheduledTask -TaskName "Sync-files-task"
+```
+
+#### Stop the application through the Task Scheduler
+
+```powershell
+Stop-ScheduledTask -TaskName "Sync-files-task"
+```
+
 </details>
 
 
