@@ -36,8 +36,9 @@ def start_sync_folder(folder: FolderParameter):
     try:
         sync_service.sync_folder()
     except DaoException:
-        logging.warning(
-            f"Failed to connect to cloud provider for folder: {folder.name}, send a notification to reconnect")
+        logging.info(
+            f"Failed to connect to cloud provider for folder: {folder.name}, send a notification to reconnect"
+        )
 
         # Use asyncio.run_coroutine_threadsafe to run the async notification
         asyncio.run_coroutine_threadsafe(
@@ -77,8 +78,6 @@ def main():
     # Initialize connections for each folder's cloud provider
     # to check if credentials are valid
     for folder_config in folders_config.folders_parameters:
-        logging.info(f"Processing folder: {folder_config.name}")
-
         # first run
         start_sync_folder(folder_config)
 

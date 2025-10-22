@@ -16,17 +16,18 @@ class SyncService:
         self.folder = folder
 
     def sync_folder(self):
+        logging.info(f"Starting sync for folder: {self.folder.name}'")
+
         # Initialize cloud connection
         dao = get_clouddao_from_cloud_enum(self.folder.cloud_provider)
         dao.init_connection()
 
         # Find files
-        logging.info(f"Starting sync for folder: {self.folder.name}'")
         files = self._get_files()
-        logging.info(f"Found {len(files)} files to sync")
+        logging.debug(f"Found {len(files)} files to sync")
 
         if len(files) == 0:
-            logging.info("No files to sync. Exiting.")
+            logging.debug("No files to sync. Exiting.")
             return
 
         # Compress files if needed
@@ -38,16 +39,11 @@ class SyncService:
 
         # Upload files
         dao.upload_files(self.folder.remote_path, files, local_base_path)
-        logging.info(f"Sync completed for folder: '{self.folder.name}'")
+        logging.info(f"Sync {len(files)} files for folder: '{self.folder.name}'")
 
     def _get_files(self) -> list[Path]:
         if not os.path.exists(self.folder.local_path):
             logging.error(f"Folder does not exist: '{self.folder.local_path}'")
-            return []
-
-        # check if the path exists
-        if not os.path.exists(self.folder.local_path):
-            logging.error(f"Local path does not exist: '{self.folder.local_path}'")
             return []
 
         local_path = Path(self.folder.local_path)
@@ -88,11 +84,11 @@ class SyncService:
         zip_path = os.path.join(temp_dir, zip_name)
 
         # Create the zip file
-        logging.info(f"Compressing {len(files_to_compress)} files to '{zip_path}'")
+        logging.debug(f"Compressing {len(files_to_compress)} files to '{zip_path}'")
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for file in files_to_compress:
                 # Add file with only its basename (not full path)
                 zf.write(file, file.relative_to(self.folder.local_path))
 
-        logging.info("Compression completed")
+        logging.debug("Compression completed")
         return zip_path

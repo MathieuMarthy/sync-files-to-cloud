@@ -140,6 +140,11 @@ open a powershell terminal as administator and run
 path/to/activate-scheduled-task.ps1
 ```
 
+⚠️ *If you have issues running the script due to execution policies, you can right-click on the script → Properties →
+Unblock → Apply. Then try running it again.*
+
+```powershell
+
 <br>
 
 #### To deactivate the scheduled task
