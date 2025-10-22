@@ -1,7 +1,7 @@
 # Variables
 $TaskName = "Sync-files-task"
 $projectPath = "path to the project" # CHANGE ME
-$PythonPath = "`"$projectPath\venv\Scripts\python.exe`""
+$PythonPath = "`"$projectPath\venv\Scripts\pythonw.exe`""
 $ScriptPath = "`"$projectPath\main.py`""
 
 # Remove existing task if it exists

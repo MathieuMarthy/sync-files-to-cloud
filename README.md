@@ -179,7 +179,7 @@ After = network.target
 
 [Service]
 ; replace the paths below with the project path
-ExecStart = /path/to/sync-files-to-cloud/venv/bin/python /path/to/sync-files-to-cloud/main.py
+ExecStart = /path/to/sync-files-to-cloud/venv/bin/pythonw /path/to/sync-files-to-cloud/main.py
 WorkingDirectory = /path/to/sync-files-to-cloud
 ; Replace 'your-username' with the appropriate user
 User = your-username
