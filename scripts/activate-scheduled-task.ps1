@@ -12,8 +12,8 @@ if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
 # Create the action to run the Python script
 $Action = New-ScheduledTaskAction -Execute $PythonPath -Argument $ScriptPath -WorkingDirectory $projectPath
 
-# Create a trigger to run the task at startup
-$Trigger = New-ScheduledTaskTrigger -AtStartup
+# Create a trigger to run the task at user logon
+$Trigger = New-ScheduledTaskTrigger -AtLogOn
 
 # Create task settings
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -Hidden -StartWhenAvailable
