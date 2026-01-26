@@ -1,9 +1,10 @@
-import fnmatch
 import logging
 import os.path
 import tempfile
 import zipfile
 from pathlib import Path
+
+import pathspec
 
 from src.dao.get_clouddao_from_cloud_enum import get_clouddao_from_cloud_enum
 from src.exceptions.DaoException import NoCredentialFileException, NoInternet
@@ -62,20 +63,13 @@ class SyncService:
         if self.folder.exclude_patterns is None or len(self.folder.exclude_patterns) == 0:
             return folders_files
 
-        # Filter files based on exclude patterns
-        filtered_files: list[Path] = []
-
-        for file in folders_files:
-            # Check if the file matches any exclude pattern
-            relative_path = str(file.relative_to(self.folder.local_path))
-            should_exclude = False
-            for pattern in self.folder.exclude_patterns:
-                if fnmatch.fnmatch(relative_path, pattern):
-                    should_exclude = True
-                    break
-
-            if not should_exclude:
-                filtered_files.append(file)
+        # Filter files based on exclude patterns using gitignore syntax
+        spec = pathspec.PathSpec.from_lines('gitwildmatch', self.folder.exclude_patterns)
+        
+        filtered_files = [
+            file for file in folders_files
+            if not spec.match_file(str(file.relative_to(self.folder.local_path)))
+        ]
 
         return filtered_files
 
