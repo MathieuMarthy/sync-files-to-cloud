@@ -2,6 +2,7 @@ import asyncio
 import logging
 import threading
 from time import sleep
+import traceback
 
 import schedule
 
@@ -17,7 +18,7 @@ projectConfig = ProjectConfig()
 logging.basicConfig(
     level=projectConfig.log_level,
     filename=projectConfig.log_file,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
 # Global event loop for async operations
@@ -48,17 +49,21 @@ def start_sync_folder(folder: FolderParameter, is_second_attempt: bool = False):
             # Use asyncio.run_coroutine_threadsafe to run the async notification
             asyncio.run_coroutine_threadsafe(
                 NotificationService.send_reconnection_notification(
-                    folder.cloud_provider,
-                    lambda: reconnect_and_sync(folder)
+                    folder.cloud_provider, lambda: reconnect_and_sync(folder)
                 ),
-                event_loop
+                event_loop,
             )
     except Exception as e:
-        logging.error(f"An unexpected error occurred during sync for folder: {folder.name}. Error: {str(e)}")
-        asyncio.run_coroutine_threadsafe(
-            NotificationService.send_error_notification(f"Error syncing folder '{folder.name}'. Check logs for details."),
-            event_loop
+        logging.error(
+            f"An unexpected error occurred during sync for folder: {folder.name}. Error: {traceback.format_exc()}"
         )
+        asyncio.run_coroutine_threadsafe(
+            NotificationService.send_error_notification(
+                f"Error syncing folder '{folder.name}'. Check logs for details."
+            ),
+            event_loop,
+        )
+
 
 def reconnect_and_sync(folder: FolderParameter):
     dao = get_clouddao_from_cloud_enum(folder.cloud_provider)
@@ -72,7 +77,9 @@ def main():
 
     # Create and start the event loop in a separate thread
     event_loop = asyncio.new_event_loop()
-    loop_thread = threading.Thread(target=start_event_loop, args=(event_loop,), daemon=True)
+    loop_thread = threading.Thread(
+        target=start_event_loop, args=(event_loop,), daemon=True
+    )
     loop_thread.start()
 
     folders_config = FoldersConfig()
