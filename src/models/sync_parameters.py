@@ -14,7 +14,7 @@ class FolderParameter:
     cloud_provider: CloudProvider
     sync_interval: int  # in seconds
     compress: bool
-    local_path: str
+    local_path: str | list[str]
     remote_path: str
     exclude_patterns: list[str]
 
@@ -55,3 +55,16 @@ class FolderParameter:
                     raise ConfigInvalidValueException(
                         f"Invalid compress value '{self.compress}'. Must be a boolean."
                     )
+
+        # field: local_path
+        if not isinstance(self.local_path, (str, list)):
+            raise ConfigInvalidValueException(
+                f"local_path must be a string or a list of strings, "
+                f"got {type(self.local_path).__name__}"
+            )
+
+        if isinstance(self.local_path, list):
+            if not all(isinstance(item, str) for item in self.local_path):
+                raise ConfigInvalidValueException(
+                    "All items in local_path list must be strings"
+                )
