@@ -15,11 +15,15 @@ from src.services.SyncService import SyncService
 
 projectConfig = ProjectConfig()
 
-logging.basicConfig(
-    level=projectConfig.log_level,
-    filename=projectConfig.log_file,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+logger = logging.getLogger("sync_files_to_cloud")
+logger.setLevel(projectConfig.log_level)
+
+file_handler = logging.FileHandler(projectConfig.log_file)
+file_handler.setLevel(projectConfig.log_level)
+file_handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 )
+logger.addHandler(file_handler)
 
 # Global event loop for async operations
 event_loop = None
@@ -38,11 +42,11 @@ def start_sync_folder(folder: FolderParameter, is_second_attempt: bool = False):
         sync_service.sync_folder()
     except AuthentificationRequiredException:
         if is_second_attempt:
-            logging.error(
+            logger.error(
                 f"Reconnection attempt failed for folder: {folder.name}. Check credentials."
             )
         else:
-            logging.info(
+            logger.info(
                 f"Failed to connect to cloud provider for folder: {folder.name}, send a notification to reconnect"
             )
 
@@ -54,7 +58,7 @@ def start_sync_folder(folder: FolderParameter, is_second_attempt: bool = False):
                 event_loop,
             )
     except Exception as e:
-        logging.error(
+        logger.error(
             f"An unexpected error occurred during sync for folder: {folder.name}. Error: {traceback.format_exc()}"
         )
         asyncio.run_coroutine_threadsafe(
@@ -100,7 +104,7 @@ def main():
             schedule.run_pending()
             sleep(1)
     except KeyboardInterrupt:
-        logging.info("Shutting down...")
+        logger.info("Shutting down...")
         event_loop.call_soon_threadsafe(event_loop.stop)
 
 

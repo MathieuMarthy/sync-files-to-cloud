@@ -10,6 +10,9 @@ from src.dao.get_clouddao_from_cloud_enum import get_clouddao_from_cloud_enum
 from src.exceptions.DaoException import NoInternet
 from src.models.sync_parameters import FolderParameter
 
+# Utiliser le logger du projet
+logger = logging.getLogger("sync_files_to_cloud")
+
 
 class SyncService:
     folder: FolderParameter
@@ -18,7 +21,7 @@ class SyncService:
         self.folder = folder
 
     def sync_folder(self):
-        logging.info(f"Starting sync for folder: '{self.folder.name}'")
+        logger.info(f"Starting sync for folder: '{self.folder.name}'")
 
         # Initialize cloud connection
         dao = get_clouddao_from_cloud_enum(self.folder.cloud_provider)
@@ -26,10 +29,10 @@ class SyncService:
 
         # Find files
         files = self._get_files()
-        logging.debug(f"Found {len(files)} files to sync")
+        logger.debug(f"Found {len(files)} files to sync")
 
         if len(files) == 0:
-            logging.info("No files to sync. Exiting.")
+            logger.info("No files to sync. Exiting.")
             return
 
         # Compress files if needed
@@ -42,9 +45,9 @@ class SyncService:
         # Upload files
         try:
             dao.upload_files(self.folder.remote_path, files, local_base_path)
-            logging.info(f"Sync {len(files)} files for folder: '{self.folder.name}'")
+            logger.info(f"Sync {len(files)} files for folder: '{self.folder.name}'")
         except NoInternet as e:
-            logging.error(f"failed to upload files to the cloud, error: {str(e)}")
+            logger.error(f"failed to upload files to the cloud, error: {str(e)}")
 
     def _get_files(self) -> list[Path]:
         if isinstance(self.folder.local_path, list):
@@ -61,7 +64,7 @@ class SyncService:
 
     def __get_file_from_directory(self, directory: str) -> list[Path]:
         if not os.path.exists(directory):
-            logging.warning(f"Folder does not exist: '{directory}'")
+            logger.warning(f"Folder does not exist: '{directory}'")
             return []
 
         local_path = Path(directory)
@@ -105,7 +108,7 @@ class SyncService:
                 common_path = Path(os.path.commonpath(self.folder.local_path))
             except ValueError:
                 # No common path (e.g., different drives on Windows), use absolute paths
-                logging.warning(
+                logger.warning(
                     "No common path found for directories. Zip archive will store "
                     "absolute paths, which may cause unexpected directory structures "
                     "when extracting."
@@ -113,7 +116,7 @@ class SyncService:
                 common_path = None
 
         # Create the zip file
-        logging.debug(f"Compressing {len(files_to_compress)} files to '{zip_path}'")
+        logger.debug(f"Compressing {len(files_to_compress)} files to '{zip_path}'")
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for file in files_to_compress:
                 # Add file with only its basename (not full path)
@@ -127,5 +130,5 @@ class SyncService:
                 else:
                     zf.write(file, str(Path(file).relative_to(self.folder.local_path)))
 
-        logging.debug("Compression completed")
+        logger.debug("Compression completed")
         return zip_path

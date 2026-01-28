@@ -8,4 +8,6 @@ def get_clouddao_from_cloud_enum(cloud_provider: CloudProvider) -> CloudDAO:
         case CloudProvider.GOOGLE_DRIVE:
             return GDriveCloudDAO()
         case _:
-            raise NotImplementedError(f"Cloud provider {cloud_provider} not implemented")
+            raise NotImplementedError(
+                f"Cloud provider {cloud_provider} not implemented"
+            )

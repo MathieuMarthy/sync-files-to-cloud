@@ -85,13 +85,28 @@ logging:
 sync:
   - name: my_images
     cloud_provider: "GoogleDrive"
-    sync_interval: 60  # in minutes (60 = 1 hour)
+    sync_interval: 60  # in minutes
     compress: true
-    local_path: "C:/Users/Username/Documents/Images" # Absolute path to local folder, if you use backslashes on windows, double them (\\)
+    local_path: "C:/Users/Username/Documents/Images" # Absolute path to local folder. Can be a string or a list of strings
     remote_path: "/images"
-    exclude_patterns:
+    exclude_patterns: # work like a .gitignore file
       - "*.tmp"
       - "temp_folder/*"
+```
+
+Other exemple with multiple local paths and exclude patterns:
+
+```yaml
+local_path:
+  - "/home/user/.config"
+  - "/home/user/.oh-my-zsh"
+
+exclude_patterns:
+  - "*"
+  - "!neofetch"
+  - "!kitty"
+  - "!custom/themes"
+  - "!nvim"
 ```
 
 ### Configuration Options
@@ -187,7 +202,7 @@ After = network.target
 
 [Service]
 ; replace the paths below with the project path
-ExecStart = /path/to/sync-files-to-cloud/venv/bin/pythonw /path/to/sync-files-to-cloud/main.py
+ExecStart = /path/to/sync-files-to-cloud/venv/bin/python /path/to/sync-files-to-cloud/main.py
 WorkingDirectory = /path/to/sync-files-to-cloud
 ; Replace 'your-username' with the appropriate user
 User = your-username

@@ -1,6 +1,7 @@
 class NoInternet(Exception):
     pass
 
+
 class DaoException(Exception):
     """Exception raised for errors in DAO."""
 
@@ -11,8 +12,10 @@ class DaoException(Exception):
 class DaoConnectionException(DaoException):
     pass
 
+
 class NoCredentialFileException(DaoException):
     pass
+
 
 class AuthentificationRequiredException(DaoException):
     pass

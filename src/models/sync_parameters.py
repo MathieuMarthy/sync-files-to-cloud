@@ -42,7 +42,9 @@ class FolderParameter:
 
         # field: sync_interval
         if not isinstance(self.sync_interval, int) or self.sync_interval <= 0:
-            raise ConfigInvalidValueException("sync_interval must be a positive integer")
+            raise ConfigInvalidValueException(
+                "sync_interval must be a positive integer"
+            )
 
         # field: compress
         if not isinstance(self.compress, bool):
