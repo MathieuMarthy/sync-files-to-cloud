@@ -16,7 +16,8 @@ basis.
 
 | Provider     | Status         | Documentation                                           |
 |--------------|----------------|---------------------------------------------------------|
-| Google Drive | ✅ Available    | [Setup Guide](documentation/connect-to-google-drive.md) |
+| Google Drive | ✅ Available   | [Setup Guide](documentation/connect-to-google-drive.md) |
+| Git          | 🛠️ In progress | -                                                       |
 | OneDrive     | 🔜 Coming Soon | -                                                       |
 | Dropbox      | 🔜 Coming Soon | -                                                       |
 
