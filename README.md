@@ -17,7 +17,7 @@ basis.
 | Provider     | Status         | Documentation                                           |
 |--------------|----------------|---------------------------------------------------------|
 | Google Drive | ✅ Available   | [Setup Guide](documentation/connect-to-google-drive.md) |
-| Git          | 🛠️ In progress | -                                                       |
+| Git          | ✅ Available   | [Setup Guide](documentation/connect-to-git.md)          |
 | OneDrive     | 🔜 Coming Soon | -                                                       |
 | Dropbox      | 🔜 Coming Soon | -                                                       |
 
@@ -71,8 +71,8 @@ pip install -r requirements.txt
 ```
 
 6. Set up cloud provider credentials:
-    - For Google Drive: Follow the [Google Drive Setup Guide](documentation/connect-to-google-drive.md)
-    - Place your `gdrive_credentials.json` file in the `credentials/` folder
+    - For Google Drive: Follow the [Google Drive Setup Guide](documentation/connect-to-google-drive.md) (place your `gdrive_credentials.json` file in the `credentials/` folder)
+    - For Git: Follow the [Git Setup Guide](documentation/connect-to-git.md) (place your `git_credentials.json` file in the `credentials/` folder)
 
 ## Configuration
 

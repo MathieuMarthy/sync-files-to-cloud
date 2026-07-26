@@ -6,6 +6,7 @@ from src.exceptions.ConfigException import ConfigInvalidValueException
 
 class CloudProvider(Enum):
     GOOGLE_DRIVE = "GoogleDrive"
+    GIT = "Git"
 
 
 @dataclass
@@ -17,6 +18,8 @@ class FolderParameter:
     local_path: str | list[str]
     remote_path: str
     exclude_patterns: list[str]
+    repository_url: str | None = None
+    branch: str | None = "main"
 
     def __post_init__(self):
         """Validate fields"""

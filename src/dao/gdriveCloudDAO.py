@@ -211,7 +211,7 @@ class GDriveCloudDAO(CloudDAO):
     def download_files(self):
         raise NotImplemented()
 
-    def init_connection(self, can_open_connection_page: bool = False):
+    def init_connection(self, can_open_connection_page: bool = False, folder=None):
         # code adapted from https://developers.google.com/workspace/drive/api/quickstart/python
 
         creds = None

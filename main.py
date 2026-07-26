@@ -71,7 +71,7 @@ def start_sync_folder(folder: FolderParameter, is_second_attempt: bool = False):
 
 def reconnect_and_sync(folder: FolderParameter):
     dao = get_clouddao_from_cloud_enum(folder.cloud_provider)
-    dao.init_connection(can_open_connection_page=True)
+    dao.init_connection(can_open_connection_page=True, folder=folder)
 
     start_sync_folder(folder, is_second_attempt=True)
 

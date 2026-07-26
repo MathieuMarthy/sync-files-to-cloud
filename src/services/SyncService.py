@@ -25,7 +25,7 @@ class SyncService:
 
         # Initialize cloud connection
         dao = get_clouddao_from_cloud_enum(self.folder.cloud_provider)
-        dao.init_connection()
+        dao.init_connection(folder=self.folder)
 
         # Find files
         files = self._get_files()

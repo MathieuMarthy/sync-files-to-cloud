@@ -12,7 +12,7 @@ class CloudDAO(ABC):
     def download_files(self):
         pass
 
-    def init_connection(self, can_open_connection_page: bool = False):
+    def init_connection(self, can_open_connection_page: bool = False, folder=None):
         """Establishes a connection to the cloud service and save credentials locally.
 
         Args:
