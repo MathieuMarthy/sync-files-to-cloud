@@ -76,14 +76,30 @@ class ProtonDriveCloudDAO(CloudDAO):
 
     def _init_cli_connection(self, can_open_connection_page: bool = False):
         resolved_bin = shutil.which(self.cli_path)
-        if not resolved_bin and not (
-            os.path.isfile(self.cli_path) and os.access(self.cli_path, os.X_OK)
-        ):
+        if not resolved_bin:
+            if os.path.isfile(self.cli_path) and os.access(self.cli_path, os.X_OK):
+                resolved_bin = self.cli_path
+            elif not os.path.isabs(self.cli_path):
+                common_paths = [
+                    Path.home() / ".local" / "bin" / self.cli_path,
+                    Path.home() / "bin" / self.cli_path,
+                    Path("/usr/local/bin") / self.cli_path,
+                    Path("/usr/bin") / self.cli_path,
+                ]
+                for candidate in common_paths:
+                    if candidate.is_file() and os.access(candidate, os.X_OK):
+                        resolved_bin = str(candidate)
+                        break
+
+        if not resolved_bin:
             raise DaoConnectionException(
                 f"ProtonDrive: CLI executable '{self.cli_path}' not found in PATH or not executable. "
                 f"Please install the Proton Drive CLI or configure 'cli_path' in {CREDENTIALS_PATH}. "
                 "See documentation/connect-to-proton-drive.md for setup instructions."
             )
+
+        self.cli_path = resolved_bin
+
 
         cmd = [self.cli_path, "filesystem", "list", "/"]
         try:
@@ -155,13 +171,29 @@ class ProtonDriveCloudDAO(CloudDAO):
 
     def _init_rclone_connection(self, can_open_connection_page: bool = False):
         resolved_bin = shutil.which(self.rclone_path)
-        if not resolved_bin and not (
-            os.path.isfile(self.rclone_path) and os.access(self.rclone_path, os.X_OK)
-        ):
+        if not resolved_bin:
+            if os.path.isfile(self.rclone_path) and os.access(self.rclone_path, os.X_OK):
+                resolved_bin = self.rclone_path
+            elif not os.path.isabs(self.rclone_path):
+                common_paths = [
+                    Path.home() / ".local" / "bin" / self.rclone_path,
+                    Path.home() / "bin" / self.rclone_path,
+                    Path("/usr/local/bin") / self.rclone_path,
+                    Path("/usr/bin") / self.rclone_path,
+                ]
+                for candidate in common_paths:
+                    if candidate.is_file() and os.access(candidate, os.X_OK):
+                        resolved_bin = str(candidate)
+                        break
+
+        if not resolved_bin:
             raise DaoConnectionException(
-                f"ProtonDrive: Rclone executable '{self.rclone_path}' not found in PATH. "
+                f"ProtonDrive: Rclone executable '{self.rclone_path}' not found in PATH or not executable. "
                 "Please install rclone or configure 'rclone_path'."
             )
+
+        self.rclone_path = resolved_bin
+
 
         cmd = [self.rclone_path, "lsf", f"{self.rclone_remote}:", "--max-depth", "1"]
         try:

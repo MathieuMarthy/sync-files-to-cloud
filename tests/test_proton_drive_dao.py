@@ -92,11 +92,27 @@ def test_init_connection_success(proton_dao):
         proton_dao.init_connection()
         mock_subproc.assert_called_once()
         assert mock_subproc.call_args[0][0] == [
-            "proton-drive",
+            "/bin/proton-drive",
             "filesystem",
             "list",
             "/",
         ]
+
+
+def test_init_connection_auto_discovers_home_local_bin(proton_dao):
+    mock_run = MagicMock(returncode=0, stdout="Folder 1\nFolder 2", stderr="")
+    candidate_path = Path.home() / ".local" / "bin" / "proton-drive"
+
+    def mock_isfile(p):
+        return str(p) == str(candidate_path)
+
+    with patch("shutil.which", return_value=None), patch(
+        "os.path.isfile", side_effect=mock_isfile
+    ), patch("os.access", return_value=True), patch(
+        "subprocess.run", return_value=mock_run
+    ):
+        proton_dao.init_connection()
+        assert proton_dao.cli_path == str(candidate_path)
 
 
 def test_init_connection_auth_required(proton_dao):
@@ -117,7 +133,7 @@ def test_init_connection_auth_login_when_allowed(proton_dao):
     ) as mock_subproc:
         proton_dao.init_connection(can_open_connection_page=True)
         assert mock_subproc.call_count == 2
-        assert mock_subproc.call_args_list[1][0][0] == ["proton-drive", "auth", "login"]
+        assert mock_subproc.call_args_list[1][0][0] == ["/bin/proton-drive", "auth", "login"]
 
 
 def test_init_connection_network_error(proton_dao):
@@ -127,6 +143,7 @@ def test_init_connection_network_error(proton_dao):
     ):
         with pytest.raises(NoInternet):
             proton_dao.init_connection()
+
 
 
 def test_normalize_remote_path(proton_dao):
