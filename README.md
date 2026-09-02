@@ -18,6 +18,7 @@ basis.
 |--------------|----------------|---------------------------------------------------------|
 | Google Drive | ✅ Available   | [Setup Guide](documentation/connect-to-google-drive.md) |
 | Git          | ✅ Available   | [Setup Guide](documentation/connect-to-git.md)          |
+| Proton Drive | ✅ Available   | [Setup Guide](documentation/connect-to-proton-drive.md) |
 | OneDrive     | 🔜 Coming Soon | -                                                       |
 | Dropbox      | 🔜 Coming Soon | -                                                       |
 
@@ -73,6 +74,8 @@ pip install -r requirements.txt
 6. Set up cloud provider credentials:
     - For Google Drive: Follow the [Google Drive Setup Guide](documentation/connect-to-google-drive.md) (place your `gdrive_credentials.json` file in the `credentials/` folder)
     - For Git: Follow the [Git Setup Guide](documentation/connect-to-git.md) (place your `git_credentials.json` file in the `credentials/` folder)
+    - For Proton Drive: Follow the [Proton Drive Setup Guide](documentation/connect-to-proton-drive.md) (official CLI or optional Rclone setup)
+
 
 ## Configuration
 
@@ -113,7 +116,7 @@ exclude_patterns:
 ### Configuration Options
 
 - **name**: Unique identifier for the sync folder
-- **cloud_provider**: Cloud storage provider (currently only "GoogleDrive")
+- **cloud_provider**: Cloud storage provider ("GoogleDrive", "Git", or "ProtonDrive")
 - **sync_interval**: Time between syncs in seconds
 - **compress**: Whether to compress files into a zip archive before upload
 - **local_path**: Absolute path to the local folder to sync

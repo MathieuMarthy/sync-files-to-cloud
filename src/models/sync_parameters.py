@@ -7,6 +7,8 @@ from src.exceptions.ConfigException import ConfigInvalidValueException
 class CloudProvider(Enum):
     GOOGLE_DRIVE = "GoogleDrive"
     GIT = "Git"
+    PROTON_DRIVE = "ProtonDrive"
+
 
 
 @dataclass

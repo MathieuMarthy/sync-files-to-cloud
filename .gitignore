@@ -1,5 +1,7 @@
 /credentials/*
 !credentials/.gitkeep
+!credentials/*.example
+
 *.bat
 *.sh
 
