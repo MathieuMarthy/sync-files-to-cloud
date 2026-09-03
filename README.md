@@ -1,7 +1,19 @@
-# Sync Files to Cloud 🐢
+<p align="center">
+  <img src="assets/banner.png" alt="Sync Files to Cloud" width="100%">
+</p>
 
-A Python-based application that automatically synchronizes local folders to cloud storage providers on a scheduled
-basis.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.8+">
+  <img src="https://img.shields.io/badge/Google_Drive-Supported-34A853?style=for-the-badge&logo=googledrive&logoColor=white" alt="Google Drive">
+  <img src="https://img.shields.io/badge/Proton_Drive-Supported-6D4AFF?style=for-the-badge&logo=protondrive&logoColor=white" alt="Proton Drive">
+  <img src="https://img.shields.io/badge/Git-Supported-F05032?style=for-the-badge&logo=git&logoColor=white" alt="Git">
+</p>
+
+<p align="center">
+  <em>A Python-based application that automatically synchronizes local folders to cloud storage providers on a scheduled basis.</em>
+</p>
+
+---
 
 ## Features
 
